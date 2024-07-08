@@ -7,6 +7,7 @@ import {
   Select, MenuItem, InputLabel, FormControl
 } from '@mui/material';
 
+
 const theme = createTheme({
   palette: {
     mode: 'dark',
@@ -86,7 +87,7 @@ function App() {
 
     console.log(`upper bound = ${data.upper_bound} and lower bound = ${data.lower_bound}`);
 
-    const result = 100 - data.lower_bound
+    const result = Math.round(100 - data.lower_bound);
     setResult(result);
   };
 

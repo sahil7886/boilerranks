@@ -36,6 +36,8 @@ def calculate_percentile():
     if filtered_df.empty:
         return jsonify({'error': 'Course not found'}), 404
 
+    # Fill NaN values with 0
+    filtered_df.fillna(0, inplace=True)
     print(filtered_df.head)
 
     # Calculate the percentile range for the given grade
