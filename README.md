@@ -22,6 +22,7 @@ TODO:
       - input might be different
       - ideally, implement dropdown including options based on course code and semester
  - yet to handle calculation for overall ranking
+ - a page that shows the toughest and easiest classes at Purdue with an option to filter by major/class 
  - idea: generate stats page for either mode
    - single course:
       - "You were in the top 32% of all students who have taken CS182 at Purdue"

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { 
   ThemeProvider, createTheme, 
   CssBaseline, Container, Typography, 
@@ -16,7 +16,7 @@ const theme = createTheme({
     },
     background: {
       default: '#1A1A1A',
-      paper: '#232323',
+      paper: '#1F1F1F',
     },
     text: {
       primary: '#FFFFFF',
@@ -50,6 +50,8 @@ function App() {
     professor: '',
   });
   const [result, setResult] = useState(null);
+  const [professorOptions, setProfessorOptions] = useState([]);
+  const resultRef = useRef(null);
 
   const handleModeChange = (event) => {
     setMode(event.target.value);
@@ -62,6 +64,31 @@ function App() {
       [event.target.name]: event.target.value,
     });
   };
+
+  useEffect(() => {
+    const fetchProfessors = async () => {
+      if (currentCourse.code && currentCourse.semester) {
+        try {
+          const response = await fetch('http://127.0.0.1:5000/professors', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              course: currentCourse.code,
+              semester: currentCourse.semester
+            })
+          });
+          const data = await response.json();
+          setProfessorOptions(data.professors);
+        } catch (error) {
+          console.error('Error fetching professors:', error);
+        }
+      }
+    };
+
+    fetchProfessors();
+  }, [currentCourse.code, currentCourse.semester]);
 
   const addCourse = () => {
     setCourses([...courses, currentCourse]);
@@ -91,10 +118,16 @@ function App() {
     setResult(result);
   };
 
+  useEffect(() => {
+    if (resultRef.current) {
+      resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [result]);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="sm" sx={{ mt: 8 }}>
+      <Container maxWidth={false} sx={{ width: '49%', mt: 8, mb: 12 }}>
         <Typography variant="h3" component="h2" gutterBottom align="center" color="primary" fontWeight="bold">
           BoilerRanks
         </Typography>
@@ -105,6 +138,7 @@ function App() {
           </Typography>
           comes in. Using data sourced from Purdue, we help you accurately determine how well you actually did in a class.
         </Typography>
+        
         <Card sx={{ mt: 5, mb: 4 }}>
           <CardContent>
             <RadioGroup row value={mode} onChange={handleModeChange} sx={{ mb: 2 }}>
@@ -121,19 +155,6 @@ function App() {
                 margin="normal"
               />
               <FormControl fullWidth margin="normal">
-                <InputLabel>Grade</InputLabel>
-                <Select
-                  name="grade"
-                  value={currentCourse.grade}
-                  onChange={handleInputChange}
-                  label="Grade"
-                >
-                  {['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'E', 'F'].map((grade) => (
-                    <MenuItem key={grade} value={grade}>{grade}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl fullWidth margin="normal">
                 <InputLabel>Semester</InputLabel>
                 <Select
                   name="semester"
@@ -146,14 +167,33 @@ function App() {
                   ))}
                 </Select>
               </FormControl>
-              <TextField
-                fullWidth
-                label="Professor"
-                name="professor"
-                value={currentCourse.professor}
-                onChange={handleInputChange}
-                margin="normal"
-              />
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Professor</InputLabel>
+                <Select
+                  name="professor"
+                  value={currentCourse.professor}
+                  onChange={handleInputChange}
+                  label="Professor"
+                >
+                  {professorOptions.map((professor) => (
+                    <MenuItem key={professor} value={professor}>{professor}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Grade</InputLabel>
+                <Select
+                  name="grade"
+                  value={currentCourse.grade}
+                  onChange={handleInputChange}
+                  label="Grade"
+                >
+                  {['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'E', 'F'].map((grade) => (
+                    <MenuItem key={grade} value={grade}>{grade}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              
               {mode === 'overall' && (
                 <Button variant="contained" onClick={addCourse} sx={{ mt: 2 }}>
                   Add Course
@@ -171,7 +211,7 @@ function App() {
           </CardContent>
         </Card>
         {result !== null && (
-          <Typography variant="h5" align="center">
+          <Typography variant="h5" align="center" sx={{mt: 6}} ref={resultRef}>
             You were in the top {result}% of your {mode === 'single' ? 'class' : 'classes'}
           </Typography>
         )}

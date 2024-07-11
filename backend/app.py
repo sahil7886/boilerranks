@@ -62,5 +62,34 @@ def calculate_percentile():
         'lower_bound': lower_bound
         })
 
+@app.route('/professors', methods=["POST"])
+def get_professors():
+    data = request.get_json()
+    semester = data['semester']
+    course = data['course']
+
+    # Split the course into subject and code
+    subject = ''.join(filter(str.isalpha, course))
+    subject = subject.upper()
+    code = ''.join(filter(str.isdigit, course))
+
+    # Read the Excel file and the relevant sheet
+    grades_df = pd.read_excel('./data/F2022-S2024_boilerranks.xlsx', sheet_name=semester)
+
+    # Forward fill to handle merged cells
+    grades_df.ffill(inplace=True)
+
+    # Filter the DataFrame by subject and course number
+    filtered_df = grades_df[(grades_df['Subject'] == subject) & 
+                            (grades_df['Course Number'] == int(code))]
+
+    if filtered_df.empty:
+        return jsonify({'error': 'Course not found'}), 404
+
+    # Get unique professors for the filtered course
+    professors = filtered_df['Instructor'].unique().tolist()
+
+    return jsonify({'professors': professors})
+
 if __name__ == '__main__':
     app.run(debug=True)
