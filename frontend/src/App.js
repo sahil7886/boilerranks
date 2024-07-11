@@ -95,14 +95,21 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Container maxWidth="sm" sx={{ mt: 8 }}>
-        <Typography variant="h3" component="h1" gutterBottom align="center" color="primary">
+        <Typography variant="h3" component="h2" gutterBottom align="center" color="primary" fontWeight="bold">
           BoilerRanks
         </Typography>
-        <Card sx={{ mt: 8, mb: 4 }}>
+        <Typography variant='body1' sx={{ marginTop: '32px' }} fontWeight="regular" align="center">
+        Because of vastly varying average grades from course to course, your grade in a class is often not an accurate representation of how well you did.<br /><br />That's where 
+          <Typography component="span" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+            &nbsp;BoilerRanks&nbsp;
+          </Typography>
+          comes in. Using data sourced from Purdue, we help you accurately determine how well you actually did in a class.
+        </Typography>
+        <Card sx={{ mt: 5, mb: 4 }}>
           <CardContent>
             <RadioGroup row value={mode} onChange={handleModeChange} sx={{ mb: 2 }}>
-              <FormControlLabel value="single" control={<Radio />} label="Single Course" />
-              <FormControlLabel value="overall" control={<Radio />} label="Overall Ranking" />
+              <FormControlLabel value="single" control={<Radio />} label="Single Course %ile" />
+              <FormControlLabel value="overall" control={<Radio />} label="Overall %ile" />
             </RadioGroup>
             <Box component="form" noValidate autoComplete="off">
               <TextField
@@ -165,7 +172,7 @@ function App() {
         </Card>
         {result !== null && (
           <Typography variant="h5" align="center">
-            You were in the top {result}% of your {mode == 'single' ? 'class' : 'classes'}
+            You were in the top {result}% of your {mode === 'single' ? 'class' : 'classes'}
           </Typography>
         )}
         {mode === 'overall' && courses.length > 0 && (

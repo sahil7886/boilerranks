@@ -33,4 +33,6 @@ TODO:
       - Worst semester, ranking wise
       - Overall Major %ile
       - Overall Minor %ile
+ - deploy:
+   -  vercel + digitalocean
       
