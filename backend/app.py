@@ -23,7 +23,6 @@ def calculate_percentile():
 
     # Forward fill to handle merged cells
     grades_df.ffill(inplace=True)
-    #print(grades_df.head)
 
     # Filter the DataFrame by subject and course number
     print("subject = "+subject)
@@ -40,27 +39,50 @@ def calculate_percentile():
     filtered_df.fillna(0, inplace=True)
     print(filtered_df.head)
 
-    # Calculate the percentile range for the given grade
-    grade_columns = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'E', 'F', 'AU', 'I', 'N', 'NS', 'P', 'PI', 'S', 'SI', 'U', 'W']
+    # Grade columns and their corresponding GPA values
+    grade_columns = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F']
+    gpa_values = {
+        'A+': 4.0, 'A': 4.0, 'A-': 3.7,
+        'B+': 3.3, 'B': 3.0, 'B-': 2.7,
+        'C+': 2.3, 'C': 2.0, 'C-': 1.7,
+        'D+': 1.3, 'D': 1.0, 'D-': 0.7,
+        'F': 0.0
+    }
+
     if grade not in grade_columns:
         print("Invalid grade: "+ grade)
         return jsonify({'error': 'Invalid grade'}), 400
 
     # Calculate the percentile ranges
-    total_students = 100  # Assuming the percentages add up to 100%
     lower_bound = 100
     upper_bound = 100
+    total_weight = 0
+    weighted_gpa_sum = 0
+
     for g in grade_columns:
         if g == grade:
             upper_bound = lower_bound
             lower_bound -= (filtered_df[g].iloc[0] * 100)
             break
         lower_bound -= (filtered_df[g].iloc[0] * 100)
-    print("upper bound is "+ str(upper_bound) + " and lower bound is " + str(lower_bound))
+
+    for g in grade_columns:
+        percentage = filtered_df[g].iloc[0] * 100
+        weighted_gpa_sum += percentage * gpa_values[g]
+        total_weight += percentage
+
+    # Calculate average GPA
+    avg_gpa = weighted_gpa_sum / total_weight if total_weight > 0 else 0
+    avg_gpa = round(avg_gpa, 2)  # Round to 2 decimal places
+
+    print(f"upper bound is {upper_bound} and lower bound is {lower_bound}")
+    print(f"average GPA is {avg_gpa}")
+
     return jsonify({
         'upper_bound': upper_bound, 
-        'lower_bound': lower_bound
-        })
+        'lower_bound': lower_bound,
+        'avg_gpa': avg_gpa
+    })
 
 @app.route('/professors', methods=["POST"])
 def get_professors():

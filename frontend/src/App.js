@@ -52,6 +52,24 @@ function App() {
   const [result, setResult] = useState(null);
   const [professorOptions, setProfessorOptions] = useState([]);
   const resultRef = useRef(null);
+  const [avgGPA, setavgGPA] = useState(null);
+  const [gradeMessage, setGradeMessage] = useState('');
+
+  // Map of GPA to letter grades
+  const gradeRanges = {
+    4: 'A',
+    3.7: 'A-',
+    3.3: 'B+',
+    3: 'B',
+    2.7: 'B-',
+    2.3: 'C+',
+    2: 'C',
+    1.7: 'C-',
+    1.3: 'D+',
+    1: 'D',
+    0.7: 'D-',
+    0: 'F'
+  };
 
   const handleModeChange = (event) => {
     setMode(event.target.value);
@@ -113,8 +131,11 @@ function App() {
     const data = await response.json();
 
     console.log(`upper bound = ${data.upper_bound} and lower bound = ${data.lower_bound}`);
+    console.log(`avg gpa was ${data.avg_gpa}`);
 
     const result = Math.round(100 - data.lower_bound);
+    setavgGPA(data.avg_gpa);
+    await resultMessage(data.avg_gpa);
     setResult(result);
   };
 
@@ -123,6 +144,40 @@ function App() {
       resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [result]);
+
+  const resultMessage = (gpa) => {
+    const findGrades = (gpa) => {
+      const grades = Object.keys(gradeRanges).sort((a, b) => b - a);
+      
+      // Check for exact matches first
+      for (let grade of grades) {
+        if (parseFloat(grade) === gpa) {
+          return `That translates to a ${gradeRanges[grade]}.`;
+        }
+      }
+
+      // Find the range if not an exact match
+      for (let i = 0; i < grades.length - 1; i++) {
+        if (gpa >= grades[i]) {
+          let upperGrade = gradeRanges[grades[i]];
+          let lowerGrade = gradeRanges[grades[i + 1]];
+          return `That is between a ${upperGrade} and ${lowerGrade}.`;
+        }
+      }
+
+      // Handle edge cases
+      if (gpa < grades[grades.length - 1]) {
+        return `That translates to an F.`;
+      } else if (gpa > grades[0]) {
+        return `That translates to an A.`;
+      }
+    };
+
+    if (gpa !== undefined) {
+      const message = findGrades(gpa);
+      setGradeMessage(message);
+    }
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -211,8 +266,8 @@ function App() {
           </CardContent>
         </Card>
         {result !== null && (
-          <Typography variant="h5" align="center" sx={{mt: 6}} ref={resultRef}>
-            You were in the top {result}% of your {mode === 'single' ? 'class' : 'classes'}
+          <Typography variant="h6" align="center" sx={{mt: 6}} ref={resultRef} fontWeight={'regular'}>
+            You were in the top {result}% of your {mode === 'single' ? 'class' : 'classes'}. The average GPA in that course session was {avgGPA}. {gradeMessage}
           </Typography>
         )}
         {mode === 'overall' && courses.length > 0 && (
